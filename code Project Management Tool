@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Manager Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .project { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    .task { border: 1px solid #eee; padding: 8px; margin: 5px 0; background: #f9f9f9; }
+    button { margin: 5px; padding: 5px 10px; }
+    input { margin: 5px; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Project Manager Demo</h1>
+  <div id="app">
+    <h2>Projects</h2>
+    <input id="projectName" placeholder="New Project Name" />
+    <button onclick="addProject()">Add Project</button>
+    <div id="projects"></div>
+  </div>
+
+  <script>
+    // Mock data storage (using localStorage)
+    let projects = JSON.parse(localStorage.getItem('projects')) || [];
+
+    function saveData() {
+      localStorage.setItem('projects', JSON.stringify(projects));
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projects');
+      container.innerHTML = '';
+      projects.forEach((project, pIndex) => {
+        const projectDiv = document.createElement('div');
+        projectDiv.className = 'project';
+        projectDiv.innerHTML = `
+          <h3>${project.name}</h3>
+          <input placeholder="New Task Title" id="taskTitle-${pIndex}" />
+          <button onclick="addTask(${pIndex})">Add Task</button>
+          <div id="tasks-${pIndex}"></div>
+        `;
+        container.appendChild(projectDiv);
+        renderTasks(pIndex);
+      });
+    }
+
+    function renderTasks(pIndex) {
+      const container = document.getElementById(`tasks-${pIndex}`);
+      container.innerHTML = '';
+      projects[pIndex].tasks.forEach((task, tIndex) => {
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task';
+        taskDiv.innerHTML = `
+          <h4>${task.title}</h4>
+          <p>Assigned to: ${task.assignedTo || 'Unassigned'}</p>
+          <button onclick="assignTask(${pIndex}, ${tIndex})">Assign to Me</button>
+          <div>
+            <h5>Comments</h5>
+            <div id="comments-${pIndex}-${tIndex}"></div>
+            <input placeholder="Add comment" id="commentInput-${pIndex}-${tIndex}" />
+            <button onclick="addComment(${pIndex}, ${tIndex})">Comment</button>
+          </div>
+        `;
+        container.appendChild(taskDiv);
+        renderComments(pIndex, tIndex);
+      });
+    }
+
+    function renderComments(pIndex, tIndex) {
+      const container = document.getElementById(`comments-${pIndex}-${tIndex}`);
+      container.innerHTML = '';
+      projects[pIndex].tasks[tIndex].comments.forEach(comment => {
+        const commentP = document.createElement('p');
+        commentP.textContent = `User: ${comment.text}`;
+        container.appendChild(commentP);
+      });
+    }
+
+    function addProject() {
+      const name = document.getElementById('projectName').value;
+      if (name) {
+        projects.push({ name, tasks: [] });
+        saveData();
+        renderProjects();
+        document.getElementById('projectName').value = '';
+      }
+    }
+
+    function addTask(pIndex) {
+      const title = document.getElementById(`taskTitle-${pIndex}`).value;
+      if (title) {
+        projects[pIndex].tasks.push({ title, assignedTo: null, comments: [] });
+        saveData();
+        renderTasks(pIndex);
+        document.getElementById(`taskTitle-${pIndex}`).value = '';
+      }
+    }
+
+    function assignTask(pIndex, tIndex) {
+      projects[pIndex].tasks[tIndex].assignedTo = 'You'; // Mock user
+      saveData();
+      renderTasks(pIndex);
+      alert('Task assigned! (Simulated real-time update)');
+    }
+
+    function addComment(pIndex, tIndex) {
+      const text = document.getElementById(`commentInput-${pIndex}-${tIndex}`).value;
+      if (text) {
+        projects[pIndex].tasks[tIndex].comments.push({ text });
+        saveData();
+        renderComments(pIndex, tIndex);
+        document.getElementById(`commentInput-${pIndex}-${tIndex}`).value = '';
+        alert('Comment added! (Simulated real-time update)');
+      }
+    }
+
+    // Initial render
+    renderProjects();
+  </script>
+</body>
+</html>
